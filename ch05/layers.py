@@ -58,7 +58,7 @@ class Sigmoid:
 
 # Affineレイヤ
 class Affine:
-    def __init__(self, w, b):
+    def __init__(self, W, b):
         self.W = W
         self.b = b
         self.x = None
@@ -89,7 +89,7 @@ class SoftmaxWithLoss:
 
     def forward(self, x, t):
         self.t = t
-        self.f = softmax(x)
+        self.y = softmax(x)
         self.loss = cross_entropy_error(self.y, self.t)
 
         return self.loss

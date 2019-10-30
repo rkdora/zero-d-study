@@ -1,5 +1,26 @@
 import numpy as np
 from layers import *
+from collections import OrderedDict
+
+def numerical_gradient(f, x):
+    h = 1e-4 # 0.0001
+    grad = np.zeros_like(x)
+
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        idx = it.multi_index
+        tmp_val = x[idx]
+        x[idx] = tmp_val + h
+        fxh1 = f(x) # f(x+h)
+
+        x[idx] = tmp_val - h
+        fxh2 = f(x) # f(x-h)
+        grad[idx] = (fxh1 - fxh2) / (2*h)
+
+        x[idx] = tmp_val # 値を元に戻す
+        it.iternext()
+
+    return grad
 
 class TwoLayerNet:
 
@@ -11,8 +32,8 @@ class TwoLayerNet:
         self.params['b2'] = np.zeros(output_size)
 
         # レイヤの生成
-        # OrderDict：順番付きのディクショナリ
-        self.layers = OrderDict()
+        # OrderedDict：順番付きのディクショナリ
+        self.layers = OrderedDict()
         self.layers['Affine1'] = Affine(self.params['W1'], self.params['b1'])
         self.layers['Relu1'] = Relu()
         self.layers['Affine2'] = Affine(self.params['W2'], self.params['b2'])
@@ -22,19 +43,17 @@ class TwoLayerNet:
         for layer in self.layers.values():
             x = layer.forward(x)
 
+        return x
+
     # x: 入力データ, t: 教師データ
     def loss(self, x, t):
         y = self.predict(x)
-        y = np.argmax(y, axis=1)
-        if t.ndim != 1 : t = np.argmax(t, axis=1)
-
-        accuracy = np.sum(y == t) / float(x.shape[0])
-        return accuracy
+        return self.lastLayer.forward(y, t)
 
     def accuracy(self, x, t):
         y = self.predict(x)
         y = np.argmax(y, axis=1)
-        t = np.argmax(t, axis=1)
+        if t.ndim != 1 : t = np.argmax(t, axis=1)
 
         accuracy = np.sum(y == t) / float(x.shape[0])
         return accuracy
@@ -61,7 +80,7 @@ class TwoLayerNet:
         layers = list(self.layers.values())
         layers.reverse()
         for layer in layers:
-            dout = layer.backwards(dout)
+            dout = layer.backward(dout)
 
         # 設定
         grads = {}
