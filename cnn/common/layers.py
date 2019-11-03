@@ -1,5 +1,6 @@
 import numpy as np
-from util import *
+from common.functions import *
+from common.util import *
 
 class Relu:
     def __init__(self):
@@ -90,8 +91,8 @@ class Convolution:
     def forward(self, x):
         FN, C, FH, FW = self.W.shape
         N, C, H, W = x.shape
-        out_h = int(1 + (H + 2 * self.pad, - FH) / self.stride)
-        out_w = int(1 + (W + 2 * self.pad, - FW) / self.stride)
+        out_h = 1 + int((H + 2*self.pad - FH) / self.stride)
+        out_w = 1 + int((W + 2*self.pad - FW) / self.stride)
 
         col = im2col(x, FH, FW, self.stride, self.pad)
         col_W = self.W.reshape(FN, -1).T
@@ -105,7 +106,7 @@ class Convolution:
 
         return out
 
-    def backward(self, x):
+    def backward(self, dout):
         FN, C, FH, FW = self.W.shape
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, FN)
 
@@ -147,12 +148,12 @@ class Pooling:
         return out
 
     def backward(self, dout):
-        dout = transpose(0, 2, 3, 1)
+        dout = dout.transpose(0, 2, 3, 1)
 
         pool_size = self.pool_h * self.pool_w
         dmax = np.zeros((dout.size, pool_size))
         dmax[np.arange(self.arg_max.size), self.arg_max.flatten()] = dout.flatten()
-        dmax = dmax.reshape(dout.shape, (pool_size,))
+        dmax = dmax.reshape(dout.shape + (pool_size,))
 
         dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1)
         dx = col2im(dcol, self.x.shape, self.pool_h, self.pool_w, self.stride, self.pad)

@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from common.layers import *
 from collections import OrderedDict
 
@@ -44,7 +45,21 @@ class SimpleConvNet:
     def loss(self, x, t):
         y = self.predict(x)
 
-        return self.lastLayer.forward(y, t)
+        return self.last_layer.forward(y, t)
+
+    def accuracy(self, x, t, batch_size=100):
+        if t.ndim != 1 : t = np.argmax(t, axis=1)
+
+        acc = 0.0
+
+        for i in range(int(x.shape[0] / batch_size)):
+            tx = x[i*batch_size:(i+1)*batch_size]
+            tt = t[i*batch_size:(i+1)*batch_size]
+            y = self.predict(tx)
+            y = np.argmax(y, axis=1)
+            acc += np.sum(y == tt)
+
+        return acc / x.shape[0]
 
     def gradient(self, x, t):
         """勾配を求める（誤差逆伝播法）
@@ -79,3 +94,20 @@ class SimpleConvNet:
         grads['W3'], grads['b3'] = self.layers['Affine2'].dW, self.layers['Affine2'].db
 
         return grads
+
+    def save_params(self, file_name="params.pkl"):
+        params = {}
+        for key, val in self.params.items():
+            params[key] = val
+        with open(file_name, 'wb') as f:
+            pickle.dump(params, f)
+
+    def load_params(self, file_name="params.pkl"):
+        with open(file_name, 'rb') as f:
+            params = pickle.load(f)
+        for key, val in params.items():
+            self.params[key] = val
+
+        for i, key in enumerate(['Conv1', 'Affine1', 'Affine2']):
+            self.layers[key].W = self.params['W' + str(i+1)]
+            self.layers[key].b = self.params['b' + str(i+1)]
