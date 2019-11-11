@@ -7,15 +7,15 @@ from common.trainer import Trainer
 # データの読み込み
 (x_train, t_train), (x_test, t_test) = mnist.load_data()
 
-print("x_train.shape", x_train.shape)
-
+# 整形
 x_train_shape = x_train.shape
 x_train = x_train.reshape(x_train_shape[0], 1, x_train_shape[1], x_train_shape[2])
-
 x_test_shape = x_test.shape
 x_test = x_test.reshape(x_test_shape[0], 1, x_test_shape[1], x_test_shape[2])
 
-print("x_train.shape", x_train.shape)
+# # 正規化
+# x_train = x_train.astype(np.float32) / 255.0
+# x_test = x_test.astype(np.float32) / 255.0
 
 max_epochs = 20
 
@@ -30,7 +30,7 @@ trainer = Trainer(network, x_train, t_train, x_test, t_test,
 trainer.train()
 
 # パラメータの保存
-network.save_params("params_20.pkl")
+network.save_params("params_20_s.pkl")
 print("Saved Network Parameters!")
 
 # グラフの描画
@@ -44,7 +44,7 @@ plt.ylim(0, 1.0)
 plt.legend(loc='lower right')
 plt.title("Acc")
 # plt.show()
-plt.savefig("acc_20.png")
+plt.savefig("acc_20_s.png")
 
 plt.cla()
 
@@ -56,4 +56,4 @@ plt.ylim(0, 10)
 plt.legend(loc='lower right')
 plt.title("Loss")
 # plt.show()
-plt.savefig("loss_20.png")
+plt.savefig("loss_20_s.png")
