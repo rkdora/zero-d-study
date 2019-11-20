@@ -95,6 +95,40 @@ class SimpleConvNet:
 
         return grads
 
+    def gradient_for_fgsm(self, x, t):
+        """勾配を求める（誤差逆伝播法）
+
+        Parameters
+        ----------
+        x : 入力データ
+        t : 教師ラベル
+
+        Returns
+        -------
+        各層の勾配を持ったディクショナリ変数
+            grads['W1']、grads['W2']、...は各層の重み
+            grads['b1']、grads['b2']、...は各層のバイアス
+        """
+        # forward
+        self.loss(x, t)
+
+        # backward
+        dout = 1
+        dout = self.last_layer.backward(dout)
+
+        layers = list(self.layers.values())
+        layers.reverse()
+        for layer in layers:
+            dout = layer.backward(dout)
+
+        # 設定
+        grads = {}
+        grads['W1'], grads['b1'] = self.layers['Conv1'].dW, self.layers['Conv1'].db
+        grads['W2'], grads['b2'] = self.layers['Affine1'].dW, self.layers['Affine1'].db
+        grads['W3'], grads['b3'] = self.layers['Affine2'].dW, self.layers['Affine2'].db
+
+        return dout, grads
+
     def save_params(self, file_name="params.pkl"):
         params = {}
         for key, val in self.params.items():
