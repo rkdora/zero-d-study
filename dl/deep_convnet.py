@@ -107,6 +107,27 @@ class DeepConvNet:
 
         return grads
 
+    def gradient_for_fgsm(self, x, t):
+        # forward
+        self.loss(x, t)
+
+        # backward
+        dout = 1
+        dout = self.last_layer.backward(dout)
+
+        tmp_layers = self.layers.copy()
+        tmp_layers.reverse()
+        for layer in tmp_layers:
+            dout = layer.backward(dout)
+
+        # 設定
+        grads = {}
+        for i, layer_idx in enumerate((0, 2, 5, 7, 10, 12, 15, 18)):
+            grads['W' + str(i+1)] = self.layers[layer_idx].dW
+            grads['b' + str(i+1)] = self.layers[layer_idx].db
+
+        return dout, grads
+
     def save_params(self, file_name="params.pkl"):
         params = {}
         for key, val in self.params.items():
