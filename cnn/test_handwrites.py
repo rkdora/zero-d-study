@@ -18,7 +18,7 @@ def generate_adv2(x, label, network, eps=0.01):
 #     plt.imshow(d.reshape(28, 28), 'gray')
 #     plt.show()
     p = eps * np.sign(d)
-    adv = (x - p).clip(min=0, max=1)
+    adv = (x + p).clip(min=0, max=1)
 #     plt.imshow(adv.reshape(28, 28), 'gray')
 #     plt.show()
     return adv
